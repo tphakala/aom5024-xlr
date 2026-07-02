@@ -33,6 +33,28 @@ housing itself (on/around the pin insert's terminals). There is no PCB pocket
 in the printed part and none is needed: the mic wires run from the insert
 through the housing's 12 mm bore to the capsule's rear solder pads.
 
+### Keep the cable short (about 20 m max)
+
+The simple resistor + capacitor circuit is suitable for **short cable runs
+only, roughly 20 meters at most**. Two reasons:
+
+- **Cable capacitance rolls off the highs.** This circuit has no output
+  buffer: the capsule's internal JFET drives the cable through the
+  feed/coupling network, giving a source impedance of several kilohms.
+  Together with the cable's conductor capacitance (roughly 50-100 pF per
+  meter for typical mic cable) this forms an RC low-pass filter. At 20 m
+  (about 2 nF) with a few-kilohm source, the corner sits just above the
+  audio band; double or triple the length and the roll-off moves audibly
+  into the treble, dulling the sound.
+- **It is not a true balanced output.** The signal rides on one leg only, so
+  the noise rejection of a genuinely balanced microphone is largely absent.
+  The longer the run, the more hum and RF interference it picks up.
+
+If you need a long run, either place the preamp/interface near the mic, or
+upgrade the electronics to a buffered, impedance-balanced circuit (for
+example a Schoeps- or Alice-style two-transistor front end) - though that
+needs more board space than this connector housing offers.
+
 ## Bill of materials
 
 - **Neutrik NC3MXX** male XLR connector - must have the bushing thread

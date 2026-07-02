@@ -68,10 +68,31 @@ def floor_material():
     return mat
 
 
-def import_stl(name, euler=(0, 0, 0), x=0.0, directory=None, material=None):
+def bore_rear(obj, radius, depth):
+    """Cut a cylindrical recess into the +z end of an object (used to carve
+    the bushing-thread opening back into the Neutrik shell, whose STEP export
+    is one fused solid with the boot and gets a flat cap when sliced)."""
+    top = max((obj.matrix_world @ Vector(c)).z for c in obj.bound_box)
+    bpy.ops.mesh.primitive_cylinder_add(radius=radius, depth=depth,
+                                        location=(0, 0, top - depth / 2 + 1.0),
+                                        vertices=96)
+    cutter = bpy.context.active_object
+    mod = obj.modifiers.new("bore", "BOOLEAN")
+    mod.operation = "DIFFERENCE"
+    mod.solver = "EXACT"
+    mod.object = cutter
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.modifier_apply(modifier="bore")
+    bpy.data.objects.remove(cutter, do_unlink=True)
+
+
+def import_stl(name, euler=(0, 0, 0), x=0.0, directory=None, material=None,
+               rear_bore=None):
     """Import an STL, rotate it, rest it on the floor centered at (x, 0)."""
     bpy.ops.wm.stl_import(filepath=os.path.join(directory or STL_DIR, name))
     obj = bpy.context.selected_objects[0]
+    if rear_bore:
+        bore_rear(obj, *rear_bore)
     obj.rotation_euler = [math.radians(a) for a in euler]
     bpy.context.view_layer.update()
     corners = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
@@ -180,8 +201,10 @@ NEUTRIK_STL = os.path.join(ROOT, "reference")
 if os.path.exists(os.path.join(NEUTRIK_STL, "NC3MXX_shell.stl")):
     build_and_render_ex("with_connector.png", [
         dict(name="NC3MXX_shell.stl", euler=(0, 90, 0), x=-25,
-             directory=NEUTRIK_STL, material="metal"),
-        dict(name="housing.stl", euler=(0, 90, 0), x=30),
+             directory=NEUTRIK_STL, material="metal", rear_bore=(8.5, 10.0)),
+        # housing rear (thread + wing ring) faces the shell's rear opening,
+        # ready to be threaded in
+        dict(name="housing.stl", euler=(0, -90, 0), x=30),
     ], azim=18, elev=22)
 else:
     print("reference/NC3MXX_shell.stl not found - skipping with_connector.png")

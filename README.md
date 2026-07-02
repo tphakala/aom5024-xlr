@@ -19,7 +19,7 @@ connector's rear face is about **26 mm**, giving a very compact plug-on mic.
 > design.
 
 ```
-[capsule] [shoulder] [neck] [thread + wing ring] --> screws into --> [Neutrik NC3MXX]
+[capsule] [lip] [neck] [thread + wing ring] --> screws into --> [Neutrik NC3MXX]
                    one printed part                                   real connector
 ```
 
@@ -53,7 +53,7 @@ way to confirm on your setup - they are tiny and print in minutes:
 | coupon | verifies |
 |---|---|
 | `stl/fit_test_conn_thread.stl` | rear thread screws smoothly into *your* shell, and the wing ring reaches/pushes the pin insert into its seat |
-| `stl/fit_test_capsule.stl` | front tip only - the capsule slides in snug and seats flat on the internal shoulder |
+| `stl/fit_test_capsule.stl` | front tip only - the capsule slides in snug and seats flat on the internal lip |
 
 ![Fit-test coupons](images/fit_tests.png)
 
@@ -72,14 +72,14 @@ out right on the first try.
 - **Infill:** 15 % is plenty; the part is mostly walls
 - **Orientation:** front (capsule) end **down** on the bed, wing ring up.
   This matters: the tip chamfer is shaped to be self-supporting in this
-  orientation. The internal shoulder prints as a short bridge over the
-  pocket; at this size it needs no support.
+  orientation. The internal lip prints as a narrow overhang step; it needs
+  no support.
 
 ## Adapting to your capsule
 
 Open `aom5024_xlr_mic.scad` in OpenSCAD - the parameters are organized for
 the built-in Customizer (Window → Customizer). The pocket bore, pocket depth
-and shoulder position all derive from two numbers under **[Capsule]**:
+and lip position all derive from two numbers under **[Capsule]**:
 
 | parameter | default | meaning |
 |---|---|---|
@@ -93,8 +93,8 @@ Other things you may want to tweak:
 | parameter | default | meaning |
 |---|---|---|
 | `body_len` | 2.5 | neck length between capsule section and connector - raise for a longer mic body; nothing else depends on it |
-| `shoulder_len` | 1.5 | thickness of the solid wall the capsule seats against |
-| `wire_pass_d` | 4.0 | wire-pass hole through that wall |
+| `lip_overlap` | 0.6 | how far the retaining lip steps in below `capsule_od`. The lip opening (`capsule_od` minus this, 9.2 mm at defaults) is what the wires pass through - wide and easy |
+| `lip_len` | 1.5 | axial thickness of the lip ring |
 
 Guardrail `assert()`s fail the render loudly if a parameter combination
 produces an oversized or broken part. After any change, print
@@ -118,7 +118,7 @@ Pre-rendered STLs with the default parameters are included in `stl/`.
    front).
 3. Solder the wires to the capsule's rear pads.
 4. Pull the wire slack back while pushing the capsule into the front pocket,
-   until its rear face seats flat on the internal shoulder. Friction holds
+   until its rear face seats flat on the internal lip. Friction holds
    it; a small dab of hot glue makes it permanent.
 5. Screw the housing into the connector shell. The wing ring pushes the pin
    insert into its seat as the thread tightens.

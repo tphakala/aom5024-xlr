@@ -19,15 +19,15 @@
 //    1. Feed the mic wires in through the rear opening and out the front.
 //    2. Solder the wires to the capsule's rear pads.
 //    3. Pull the wire slack back while pushing the capsule into the FRONT
-//       pocket, until its rear face lands on the internal shoulder (the
-//       depth stop). Friction holds it; add a dab of hot glue for a
-//       permanent bond.
+//       pocket, until its rear face lands on the internal lip (the depth
+//       stop). Friction holds it; add a dab of hot glue for a permanent
+//       bond.
 //    4. Screw the housing's rear thread into the connector shell. The wing
 //       ring reaches past the thread and pushes the pin insert into its seat.
 //
 //  ADAPTING TO YOUR CAPSULE
 //    Set capsule_od and capsule_h under [Capsule] below - the pocket bore,
-//    pocket depth and shoulder position all derive from those two numbers.
+//    pocket depth and lip position all derive from those two numbers.
 //    Print "fit_test_capsule" (just the front tip, minutes of print time) to
 //    confirm the fit before printing a full housing.
 //
@@ -36,7 +36,7 @@
 //    reference mesh, NOT from a Neutrik spec sheet - verify against YOUR
 //    connector before committing to a full print:
 //      fit_test_conn_thread - rear thread + wing ring stub
-//      fit_test_capsule     - front tip only: pocket + shoulder
+//      fit_test_capsule     - front tip only: pocket + lip
 //
 //  EXPORT
 //    openscad -o stl/housing.stl              -D 'part="housing"'              aom5024_xlr_mic.scad
@@ -45,10 +45,9 @@
 //
 //  PRINTING
 //    Orientation: front (capsule) end down on the bed, wing ring up. The tip
-//    chamfer is designed to be self-supporting in this orientation; the
-//    shoulder prints as a short internal bridge over the pocket, no support
-//    needed at this size. PETG / ABS / ASA recommended, 4 perimeters,
-//    0.16-0.20mm layers, 15% infill.
+//    chamfer is designed to be self-supporting in this orientation; the lip
+//    prints as a narrow internal overhang step, no support needed. PETG /
+//    ABS / ASA recommended, 4 perimeters, 0.16-0.20mm layers, 15% infill.
 // =============================================================================
 
 
@@ -66,18 +65,21 @@ capsule_h = 5.0;
 capsule_radial_clear = 0.05;
 // Extra pocket depth behind the capsule's nominal seat - tolerance for capsule height variation and solder blobs on the rear pads
 capsule_depth_clear = 0.2;
-// Thickness of the solid shoulder wall behind the pocket - the lip the capsule's rear face seats against (its depth stop)
-shoulder_len = 1.5;
-// Diameter of the wire-pass hole through the shoulder
-wire_pass_d = 4.0;
+// How far the retaining lip behind the pocket bites below capsule_od, total
+// diametral. The lip's opening is capsule_od - lip_overlap (9.2mm at the
+// defaults) - a narrow annular step that stops the capsule but leaves the
+// opening wide enough to pass the mic wires through with ease
+lip_overlap = 0.6;
+// Axial thickness of the lip ring
+lip_len = 1.5;
 
 // NOTE on the pocket design: a single consistent bore diameter is used for
 // the entire pocket, opening straight out at the front face. Do not be
 // tempted to add a narrower "aperture" in front of a wider pocket - if the
 // opening is smaller than the pocket behind it, the capsule has room to
-// rattle, tilt, and sink too deep in the gap. The shoulder provides the
-// positive depth stop; the bore is just a straight, snug sleeve, and the
-// capsule is retained by friction plus optional glue.
+// rattle, tilt, and sink too deep in the gap. The lip provides the positive
+// depth stop; the bore is just a straight, snug sleeve, and the capsule is
+// retained by friction plus optional glue.
 
 
 /* [Front tip] */
@@ -144,10 +146,11 @@ conn_thread_tooth_h = (conn_thread_major_d - conn_thread_minor_d) / 2;
 pocket_id = capsule_od + 2*capsule_radial_clear; // one consistent bore, open
                                                   // straight to the front face
 
-z_seat         = capsule_h + capsule_depth_clear; // capsule rear-face resting z (shoulder face)
-z_shoulder_end = z_seat + shoulder_len;           // rear side of the shoulder wall
+z_seat    = capsule_h + capsule_depth_clear; // capsule rear-face resting z (lip face)
+z_lip_end = z_seat + lip_len;                // rear side of the lip ring
+lip_id    = capsule_od - lip_overlap;        // the lip's opening (wire passage)
 
-z_body        = z_shoulder_end;
+z_body        = z_lip_end;
 z_collar      = z_body + body_len;
 z_conn_thread = z_collar + collar_len;
 z_wing        = z_conn_thread + conn_thread_len;
@@ -160,7 +163,8 @@ assert(collar_od <= max_od + eps, "collar_od exceeds max_od");
 assert(conn_thread_major_d <= max_od + eps, "connector thread OD exceeds max_od");
 assert(max_od <= conn_shell_od + eps, "max_od exceeds conn_shell_od");
 assert(conn_thread_minor_d > wire_bore_d + 2, "rear thread root wall too thin");
-assert(pocket_id > wire_pass_d + 2, "shoulder wall too narrow - shrink wire_pass_d or use a bigger capsule pocket");
+assert(lip_overlap > 2*capsule_radial_clear + 0.1, "lip_overlap too small to reliably stop the capsule");
+assert(lip_id > 4, "lip opening too small to pass the mic wires - lower lip_overlap");
 assert(pocket_id <= body_od - 2, "front tip wall too thin - shrink capsule_od/capsule_radial_clear or raise body_od");
 
 
@@ -242,17 +246,18 @@ module housing_cavity() {
     // (z=0) - the outer chamfer is handled separately by cap_tip_outer() in
     // housing(), this is purely the internal capsule-fit bore
     translate([0,0,-eps]) cylinder(h = z_seat + eps, d = pocket_id);
-    // wire-pass hole through the shoulder wall (the capsule's depth stop)
+    // wide opening through the lip ring (the capsule's depth stop) - the
+    // mic wires pass through here with plenty of room
     translate([0,0, z_seat - eps])
-        cylinder(h = shoulder_len + 2*eps, d = wire_pass_d);
-    // constant wire bore, from behind the shoulder to the rear tip
-    translate([0,0, z_shoulder_end])
-        cylinder(h = housing_len - z_shoulder_end + eps, d = wire_bore_d);
+        cylinder(h = lip_len + 2*eps, d = lip_id);
+    // constant wire bore, from behind the lip to the rear tip
+    translate([0,0, z_lip_end])
+        cylinder(h = housing_len - z_lip_end + eps, d = wire_bore_d);
 }
 
 
 // =============================================================================
-//  HOUSING  (one part: capsule pocket + shoulder -> body tube -> collar ->
+//  HOUSING  (one part: capsule pocket + lip -> body tube -> collar ->
 //            connector thread -> wing ring). z=0 is the front tip.
 // =============================================================================
 module housing() {
@@ -302,10 +307,10 @@ module fit_test_conn_thread() {
 }
 
 module fit_test_capsule() {
-    // just the front tip: pocket + shoulder + a short stub of the wire bore -
+    // just the front tip: pocket + lip + a short stub of the wire bore -
     // tests the capsule's friction fit and seating without printing the
     // whole housing
-    stub_len = z_shoulder_end + 4;
+    stub_len = z_lip_end + 4;
     difference() {
         union() {
             cap_tip_outer(body_od, tip_chamfer_len, tip_fillet_r);
@@ -314,9 +319,9 @@ module fit_test_capsule() {
         }
         translate([0,0,-eps]) cylinder(h = z_seat + eps, d = pocket_id);
         translate([0,0, z_seat - eps])
-            cylinder(h = shoulder_len + 2*eps, d = wire_pass_d);
-        translate([0,0, z_shoulder_end])
-            cylinder(h = stub_len - z_shoulder_end + eps, d = wire_bore_d);
+            cylinder(h = lip_len + 2*eps, d = lip_id);
+        translate([0,0, z_lip_end])
+            cylinder(h = stub_len - z_lip_end + eps, d = wire_bore_d);
     }
 }
 

@@ -23,7 +23,7 @@ are NOT compatible with this design.
 friction fit and seating all confirmed on real hardware. That print also
 showed the then-current snap-fit fingers never actually flex in practice
 (the capsule is inserted from the front, not pushed past them from the
-rear), so they were simplified to the solid shoulder described below; the
+rear), so they were simplified to the solid lip ring described below; the
 exterior, pocket and thread are unchanged by that simplification.
 
 > An earlier two-part variant (separate threaded cap holding the capsule) was
@@ -38,7 +38,7 @@ exterior, pocket and thread are unchanged by that simplification.
 - `aom5024_xlr_mic.scad` - the design (one printable part + two fit-test coupons)
 - `stl/housing.stl` - the printable part
 - `stl/fit_test_conn_thread.stl` - coupon: rear thread + wing ring stub
-- `stl/fit_test_capsule.stl` - coupon: front tip only (pocket + shoulder),
+- `stl/fit_test_capsule.stl` - coupon: front tip only (pocket + lip),
   to test the capsule fit without printing the whole housing
 
 All STL exports are re-rendered after every dimensional change and confirmed
@@ -53,7 +53,7 @@ manifold (`Simple: yes`, `Volumes: 2` in the OpenSCAD CLI render stats).
                                                                    |
                                                      body tube (wire routing)
                                                                    |
-                                                     solid shoulder (depth stop)
+                                                     solid lip ring (depth stop)
                                                                    |
                                                      capsule pocket, open at the front
 ```
@@ -62,7 +62,7 @@ manifold (`Simple: yes`, `Volumes: 2` in the OpenSCAD CLI render stats).
 2. Solder the wires to the capsule's rear pads (the AOM-5024L-HD-R has two
    solder pads, no lead wires).
 3. Pull the wire slack back while pushing the capsule into the FRONT pocket,
-   until its rear face lands flat on the shoulder. Friction holds it; a
+   until its rear face lands flat on the lip. Friction holds it; a
    small dab of hot glue makes it permanent.
 4. The housing's rear thread screws into the connector shell's internal
    thread. The **wing ring** (a solid ring just past the thread) reaches
@@ -72,10 +72,11 @@ manifold (`Simple: yes`, `Volumes: 2` in the OpenSCAD CLI render stats).
 **The pocket + depth stop:** the capsule pocket is ONE consistent bore
 diameter (`pocket_id` ≈ 9.9mm) for its entire depth, open straight out to the
 front face - no separate, larger internal cavity behind a narrower opening.
-Depth is set by a solid shoulder wall (`shoulder_len` = 1.5mm, with a
-`wire_pass_d` = 4mm hole through it) positioned at exactly
-`capsule_h + capsule_depth_clear` - the capsule's rear face lands flat
-against it. Retention along the pocket walls is friction (≈0.1mm total
+Depth is set by a solid annular lip (`lip_len` = 1.5mm thick) starting at
+exactly `capsule_h + capsule_depth_clear` - the capsule's rear face lands
+flat against it. The lip's opening is `capsule_od - lip_overlap` (Ø9.2mm at
+the defaults): only a 0.3mm/side step, plenty to stop the capsule, while
+leaving the passage wide enough to feed the mic wires through with ease. Retention along the pocket walls is friction (≈0.1mm total
 diametral clearance) plus optional glue. An earlier iteration used four
 flexible snap fingers here instead; the ASA test print showed they only ever
 act as this same lip (the capsule is inserted from the front and never cams
@@ -141,9 +142,9 @@ measure the capsule and set `capsule_od` to match.
 | Max OD anywhere on the print | 20.4 mm (`max_od`; print-compensated over a 20.3mm caliper measurement of the shell) |
 | Overall length, capsule tip → connector rear face | ≈ 25.7 mm (`housing_len`) |
 | Body tube length (`body_len`, freely adjustable) | 2.5 mm (a short connecting neck - raise it for a longer mic) |
-| Wire-passage bore (constant, behind the shoulder) | 12.0 mm (`wire_bore_d` = `wing_id`) |
+| Wire-passage bore (constant, behind the lip) | 12.0 mm (`wire_bore_d` = `wing_id`) |
 | Capsule pocket | Ø9.9 mm × 5.2 mm deep (= `capsule_h` + `capsule_depth_clear`, one consistent bore, open to the front face) |
-| Depth stop | solid shoulder wall, 1.5 mm thick (`shoulder_len`) with a Ø4 mm wire-pass hole (`wire_pass_d`), starting at `capsule_h + capsule_depth_clear` |
+| Depth stop | solid lip ring, 1.5 mm thick (`lip_len`), opening Ø9.2 mm (`capsule_od - lip_overlap`), starting at `capsule_h + capsule_depth_clear` |
 | Front outer edge (cosmetic) | 1.0mm-run 45° chamfer + 0.3mm fillet on the OD |
 
 `max_od` is enforced by `assert()`s in the derived-values section - rendering
@@ -172,16 +173,16 @@ same treatment.
 
 ## Suggested print settings
 
-- **Material:** PETG or ABS/ASA (thread + wing-ring + snap-finger
-  durability). ASA is print-verified.
+- **Material:** PETG or ABS/ASA (thread + wing-ring durability). ASA is
+  print-verified.
 - **Layer height:** 0.16-0.20 mm. 0.4mm nozzle is print-verified.
-- **Perimeters:** 4 (thread strength, thin wing-ring/snap-finger walls).
+- **Perimeters:** 4 (thread strength, thin wing-ring walls).
 - **Infill:** 15% is plenty (print-verified); the part is mostly walls.
 - **Orientation:** front (capsule) end down on the bed, wing ring up. This is
   required, not optional: the tip chamfer is specifically built to widen as
   it prints upward in this orientation - printed the other way it would be a
-  shrinking overhang. The internal shoulder prints as a short annular bridge
-  over the pocket; at Ø9.9mm it bridges cleanly without support.
+  shrinking overhang. The internal lip prints as a narrow (0.35mm/side)
+  overhang step over the pocket; it needs no support.
 
 ## Open items
 

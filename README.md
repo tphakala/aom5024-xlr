@@ -128,3 +128,10 @@ Pre-rendered STLs with the default parameters are included in `stl/`.
 Dimensional provenance and the reasoning behind the geometry live in
 [SPEC.md](SPEC.md). The preview images are rendered from the STLs with
 `scripts/render_previews.py` (Blender, headless).
+
+## License
+
+[CC BY-NC 4.0](LICENSE) (Creative Commons Attribution-NonCommercial).
+You are free to print, modify and share this design with attribution.
+**Commercial use is not permitted** - do not sell prints or derivatives of
+this design.

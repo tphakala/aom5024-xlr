@@ -2,9 +2,9 @@
 
 Engineering/provenance notes for `aom5024_xlr_mic.scad`: a parametric OpenSCAD
 design for a one-piece pencil-mic body that holds a PUI Audio **AOM-5024L-HD-R**
-electret capsule in a snap-fit pocket at the front and screws its rear end into
-the **real** Neutrik **NC3MXX** metal shell's own internal thread (the newer
-NC3MXX revision has threads machined inside the shell, where the stock cable
+electret capsule in a friction-fit pocket at the front and screws its rear end
+into the **real** Neutrik **NC3MXX** metal shell's own internal thread (the
+NC3MXX has threads machined inside the shell, where the stock cable
 bushing/boot normally screws in). The real connector shell + pin insert are
 used unmodified; only the bushing/boot is replaced, extended forward to carry
 the capsule.
@@ -19,8 +19,12 @@ and REAN-branded variants have the thread on the OUTSIDE of the shell and
 are NOT compatible with this design.
 
 **Print-validated:** the housing has been printed in ASA with a 0.4mm nozzle
-(Bambu Lab H2D) and came out right on the first try - thread fit, snap-fit
-capsule retention and seating all confirmed on real hardware.
+(Bambu Lab H2D) and came out right on the first try - thread fit, capsule
+friction fit and seating all confirmed on real hardware. That print also
+showed the then-current snap-fit fingers never actually flex in practice
+(the capsule is inserted from the front, not pushed past them from the
+rear), so they were simplified to the solid shoulder described below; the
+exterior, pocket and thread are unchanged by that simplification.
 
 > An earlier two-part variant (separate threaded cap holding the capsule) was
 > retired in favor of this one-piece snap-fit design - fewer parts, shorter,
@@ -34,8 +38,8 @@ capsule retention and seating all confirmed on real hardware.
 - `aom5024_xlr_mic.scad` - the design (one printable part + two fit-test coupons)
 - `stl/housing.stl` - the printable part
 - `stl/fit_test_conn_thread.stl` - coupon: rear thread + wing ring stub
-- `stl/fit_test_snap.stl` - coupon: front tip only (pocket + snap fingers),
-  to test capsule retention without printing the whole housing
+- `stl/fit_test_capsule.stl` - coupon: front tip only (pocket + shoulder),
+  to test the capsule fit without printing the whole housing
 
 All STL exports are re-rendered after every dimensional change and confirmed
 manifold (`Simple: yes`, `Volumes: 2` in the OpenSCAD CLI render stats).
@@ -49,20 +53,17 @@ manifold (`Simple: yes`, `Volumes: 2` in the OpenSCAD CLI render stats).
                                                                    |
                                                      body tube (wire routing)
                                                                    |
-                                                     4 snap fingers, then capsule pocket
+                                                     solid shoulder (depth stop)
                                                                    |
-                                                     front opening (capsule seats here)
+                                                     capsule pocket, open at the front
 ```
 
 1. Feed mic wires through the housing from the rear opening, out the front.
 2. Solder the wires to the capsule's rear pads (the AOM-5024L-HD-R has two
    solder pads, no lead wires).
-3. Push the capsule in from the rear, forward through the bore. Its leading
-   edge cams the 4 fingers outward as it passes; once its front face reaches
-   the front of the pocket, the fingers spring back in behind its rear edge
-   and hold it captive. Optional dab of hot glue for a permanent bond - the
-   snap alone is a mechanical retain, not guaranteed to survive repeated
-   handling/vibration forever.
+3. Pull the wire slack back while pushing the capsule into the FRONT pocket,
+   until its rear face lands flat on the shoulder. Friction holds it; a
+   small dab of hot glue makes it permanent.
 4. The housing's rear thread screws into the connector shell's internal
    thread. The **wing ring** (a solid ring just past the thread) reaches
    further into the shell than the thread does and pushes the connector's
@@ -71,10 +72,14 @@ manifold (`Simple: yes`, `Volumes: 2` in the OpenSCAD CLI render stats).
 **The pocket + depth stop:** the capsule pocket is ONE consistent bore
 diameter (`pocket_id` ≈ 9.9mm) for its entire depth, open straight out to the
 front face - no separate, larger internal cavity behind a narrower opening.
-Depth is set by the snap fingers (positioned at exactly
-`capsule_h + capsule_depth_clear`), a positive tactile stop. Retention along
-the pocket walls is friction (≈0.1mm total diametral clearance) plus the
-fingers, plus optional glue.
+Depth is set by a solid shoulder wall (`shoulder_len` = 1.5mm, with a
+`wire_pass_d` = 4mm hole through it) positioned at exactly
+`capsule_h + capsule_depth_clear` - the capsule's rear face lands flat
+against it. Retention along the pocket walls is friction (≈0.1mm total
+diametral clearance) plus optional glue. An earlier iteration used four
+flexible snap fingers here instead; the ASA test print showed they only ever
+act as this same lip (the capsule is inserted from the front and never cams
+past them), so they were replaced with the simpler, stronger solid wall.
 
 **The front outer edge** is a purely cosmetic 1.0mm-run 45° chamfer with a
 0.3mm fillet where the flat front face meets the cylindrical OD - built so
@@ -121,27 +126,25 @@ tightened over three passes after looser values (0.3, then 0.15, then
 port cluster - not reproduced as printed holes (FDM can't resolve 0.4mm
 reliably); the opening is left fully open instead.
 
-**C. Snap-fit fingers - starting values, tune per print**
+**C. Capsule friction fit - print-verified on ASA**
 
-`nub_overlap` (0.6mm total, i.e. 0.3mm/side flex) and
-`finger_wall`/`finger_len` are reasonable starting values for a short
-PETG/ABS/ASA cantilever. If the capsule won't snap past the fingers, *lower*
-`nub_overlap` (shallower catch, easier entry) or increase `finger_len`
-(longer, more flexible cantilever). If it snaps in too loosely, raise
-`nub_overlap`.
+The pocket holds the AOM-5024 in place with friction alone at the shipped
+0.05mm/side clearance (verified on the ASA print); hot glue is optional
+insurance. If a different capsule or material combination comes out too
+tight, raise `capsule_radial_clear` one step (0.05 to 0.10); if loose,
+measure the capsule and set `capsule_od` to match.
 
 ## Current computed dimensions (defaults as shipped)
 
 | | value |
 |---|---|
 | Max OD anywhere on the print | 20.4 mm (`max_od`; print-compensated over a 20.3mm caliper measurement of the shell) |
-| Overall length, capsule tip → connector rear face | ≈ 28.2 mm (`housing_len`) |
+| Overall length, capsule tip → connector rear face | ≈ 25.7 mm (`housing_len`) |
 | Body tube length (`body_len`, freely adjustable) | 2.5 mm (a short connecting neck - raise it for a longer mic) |
-| Wire-passage bore (constant, behind the finger anchor) | 12.0 mm (`wire_bore_d` = `wing_id`) |
+| Wire-passage bore (constant, behind the shoulder) | 12.0 mm (`wire_bore_d` = `wing_id`) |
 | Capsule pocket | Ø9.9 mm × 5.2 mm deep (= `capsule_h` + `capsule_depth_clear`, one consistent bore, open to the front face) |
-| Depth stop | the snap fingers, positioned exactly at `capsule_h + capsule_depth_clear` |
+| Depth stop | solid shoulder wall, 1.5 mm thick (`shoulder_len`) with a Ø4 mm wire-pass hole (`wire_pass_d`), starting at `capsule_h + capsule_depth_clear` |
 | Front outer edge (cosmetic) | 1.0mm-run 45° chamfer + 0.3mm fillet on the OD |
-| Snap fingers | 4× cantilevers, 4.0 mm long, 1.0 mm wall, nubs catch at Ø9.2 mm (0.6 mm below the 9.8mm capsule OD), `finger_r_out` margin-guarded above `wire_bore_d/2` |
 
 `max_od` is enforced by `assert()`s in the derived-values section - rendering
 fails loudly if any parameter change pushes an OD past budget, rather than
@@ -152,7 +155,7 @@ silently printing an oversized part.
 ```
 openscad -o stl/housing.stl              -D 'part="housing"'              aom5024_xlr_mic.scad
 openscad -o stl/fit_test_conn_thread.stl -D 'part="fit_test_conn_thread"' aom5024_xlr_mic.scad
-openscad -o stl/fit_test_snap.stl        -D 'part="fit_test_snap"'        aom5024_xlr_mic.scad
+openscad -o stl/fit_test_capsule.stl     -D 'part="fit_test_capsule"'     aom5024_xlr_mic.scad
 ```
 
 Threaded parts take ~15-100s to render at F6/CLI. **Always check the
@@ -177,8 +180,8 @@ same treatment.
 - **Orientation:** front (capsule) end down on the bed, wing ring up. This is
   required, not optional: the tip chamfer is specifically built to widen as
   it prints upward in this orientation - printed the other way it would be a
-  shrinking overhang. The snap fingers' vertical slot cuts don't need support
-  at any angle.
+  shrinking overhang. The internal shoulder prints as a short annular bridge
+  over the pocket; at Ø9.9mm it bridges cleanly without support.
 
 ## Open items
 

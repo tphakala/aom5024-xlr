@@ -168,19 +168,20 @@ build_and_render("housing.png", [
 # the two fit-test coupons
 build_and_render("fit_tests.png", [
     ("fit_test_conn_thread.stl", (0, 0, 0), -18),
-    ("fit_test_snap.stl", (0, 0, 0), 18),
+    ("fit_test_capsule.stl", (0, 0, 0), 18),
 ])
 
-# housing next to a real Neutrik NC3MXX connector, coaxial, thread facing the
-# shell's rear opening. Requires reference/NC3MXX.stl converted from Neutrik's
-# official STEP model - NOT redistributable, so it is gitignored and this
-# image simply isn't re-rendered if the file is absent.
+# housing next to a real Neutrik NC3MXX connector (shell only, stock boot
+# removed - the printed housing replaces the boot), coaxial, thread facing
+# the shell's rear opening. Requires reference/NC3MXX_shell.stl converted
+# from Neutrik's official STEP model - NOT redistributable, so it is
+# gitignored and this image simply isn't re-rendered if the file is absent.
 NEUTRIK_STL = os.path.join(ROOT, "reference")
-if os.path.exists(os.path.join(NEUTRIK_STL, "NC3MXX.stl")):
+if os.path.exists(os.path.join(NEUTRIK_STL, "NC3MXX_shell.stl")):
     build_and_render_ex("with_connector.png", [
-        dict(name="NC3MXX.stl", euler=(0, 90, 0), x=-25,
+        dict(name="NC3MXX_shell.stl", euler=(0, 90, 0), x=-25,
              directory=NEUTRIK_STL, material="metal"),
-        dict(name="housing.stl", euler=(0, 90, 0), x=35),
+        dict(name="housing.stl", euler=(0, 90, 0), x=30),
     ], azim=18, elev=22)
 else:
-    print("reference/NC3MXX.stl not found - skipping with_connector.png")
+    print("reference/NC3MXX_shell.stl not found - skipping with_connector.png")

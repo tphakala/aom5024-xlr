@@ -23,7 +23,7 @@
 //       pocket, until its rear face lands on the internal lip (the depth
 //       stop). Friction holds it; add a dab of hot glue for a permanent
 //       bond.
-//    4. OPTIONAL weather seal: drop a ~13 x 3 (ID x cord) O-ring into the
+//    4. OPTIONAL weather seal: drop a ~13 x 2.5 (ID x cord) O-ring into the
 //       shell's smooth internal lip pocket, just above its threads.
 //    5. Screw the housing's rear thread into the connector shell. The wing
 //       ring reaches past the thread and pushes the pin insert into its seat;
@@ -140,8 +140,8 @@ body_len = 2.5;
 /* [O-ring seal zone] */
 // The boot necks down to a waist between the collar and the thread. It works
 // as-is (dry), and it also lets you add an OPTIONAL O-ring for weather sealing:
-// seat a ~2.5-3mm cord O-ring (measured ID~13 / OD~19, e.g. a 13x3 nitrile
-// ring) in the NC3MXX shell's smooth internal lip pocket just above its
+// seat a 13 x 2.5mm (ID x cord) O-ring in the NC3MXX shell's smooth internal
+// lip pocket just above its threads (a 3mm cord over-squeezes and will not fit),
 // threads, then thread the boot in - the neck passes through the ring and the
 // shell bore squeezes it against the neck to seal. No groove is needed: the
 // ring lives in the shell, not on the boot. Print-tested sealing on a real shell.

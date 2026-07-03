@@ -191,9 +191,9 @@ def build_and_render_ex(filename, parts, azim=30.0, elev=16.0):
     render(os.path.join(IMG_DIR, filename))
 
 
-def add_oring(x, z, major=8.25, minor=1.5):
+def add_oring(x, z, major=8.0, minor=1.25):
     """A rubber O-ring (torus) resting around the housing axis at height z.
-    major/minor give ID 13.5 / cord 3.0 (OD 19.5), sitting on the Ø13.5 seal
+    major/minor give ID 13.5 / cord 2.5 (OD 18.5), sitting on the Ø13.5 seal
     neck. z is the neck's mid-height in the housing's own frame (the housing is
     imported tip-down with no rotation, so model z == world z)."""
     bpy.ops.mesh.primitive_torus_add(location=(x, 0, z),

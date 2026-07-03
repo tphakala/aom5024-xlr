@@ -200,8 +200,9 @@ is squeezed between the shell bore and the boot's seal neck as the boot threads
 in. The ring lives in the shell, not on the boot, so no groove is needed.
 
 **Provenance (measured / print-tuned against one real shell + one O-ring,
-2026-07-03):** O-ring measured ID ~13 mm / OD ~19 mm (cord ~3 mm; box labeled
-2.5 mm). The neck diameter was found by printing a row of stepped seal-test
+2026-07-03):** the O-ring is a 13 x 2.5 mm (ID x cord) nitrile ring; a 3 mm
+cord over-squeezes at this neck/bore and will not fit. The neck diameter was
+found by printing a row of stepped seal-test
 plugs (Ø11.5-13.5 mm) and pushing each into the shell with the ring: Ø13.5
 sealed snug/perfect - loose on the bare neck in air, tight once the shell bore
 confines it (textbook radial seal). The thread + wing shift down by

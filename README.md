@@ -65,7 +65,7 @@ mics.
 ![The seal zone bare (left) and with an O-ring seated in it (right)](images/oring_seal.png)
 
 The NC3MXX shell has a smooth, unthreaded lip pocket just inside its rear
-opening, above the internal threads. Drop a **~13 x 3 mm** (inner diameter x
+opening, above the internal threads. Drop a **~13 x 2.5 mm** (inner diameter x
 cord) O-ring into that pocket, then thread the housing in as usual: the seal
 neck passes through the ring and the shell bore squeezes it against the neck,
 sealing the joint. No groove or glue is needed - the ring is captured between
@@ -89,7 +89,7 @@ face.
   [Adapting to your capsule](#adapting-to-your-capsule))
 - Resistor + capacitor for the P48 circuit
 - Thin wire; optionally a dab of hot glue for permanent capsule retention
-- Optional: a **~13 x 3 mm** (ID x cord) O-ring to weather-seal the
+- Optional: a **~13 x 2.5 mm** (ID x cord) O-ring to weather-seal the
   housing/shell joint (see [Weather sealing](#weather-sealing-optional))
 
 ## Print the fit tests first
@@ -170,7 +170,7 @@ Pre-rendered STLs with the default parameters are included in `stl/`.
 4. Pull the wire slack back while pushing the capsule into the front pocket,
    until its rear face seats flat on the internal lip. Friction holds
    it; a small dab of hot glue makes it permanent.
-5. Optional weather seal: drop a ~13 x 3 mm (ID x cord) O-ring into the
+5. Optional weather seal: drop a ~13 x 2.5 mm (ID x cord) O-ring into the
    connector shell's smooth internal lip pocket, just inside the rear opening
    above the threads (see [Weather sealing](#weather-sealing-optional)).
 6. Screw the housing into the connector shell. The wing ring pushes the pin

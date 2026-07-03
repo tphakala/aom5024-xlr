@@ -146,7 +146,7 @@ measure the capsule and set `capsule_od` to match.
 | Capsule pocket | Ø9.9 mm × 5.2 mm deep (= `capsule_h` + `capsule_depth_clear`, one consistent bore, open to the front face) |
 | Depth stop | solid lip ring, 1.5 mm thick (`lip_len`), opening Ø9.2 mm (`capsule_od - lip_overlap`), starting at `capsule_h + capsule_depth_clear` |
 | Front outer edge (cosmetic) | 1.0mm-run 45° chamfer + 0.3mm fillet on the OD |
-| Seal neck (O-ring seal zone) | Ø13.5 mm x 2.6 mm long between collar and thread, wire bore necked to Ø8.0 mm there (`oring_neck_d` / `oring_neck_len` / `oring_neck_bore_d`) - see below |
+| Seal neck (O-ring seal zone) | Ø13.5 mm x 2.6 mm sealing land between collar and thread, wire bore necked to Ø9.8 mm there (`oring_neck_d` / `oring_neck_len` / `oring_neck_bore_d`); a Ø9.8→12 internal chamfer fillets the collar/neck junction and a Ø13.5→15.72 external cone leads the OD into the thread (`oring_neck_cham` / `oring_thread_lead`) - see below |
 
 `max_od` is enforced by `assert()`s in the derived-values section - rendering
 fails loudly if any parameter change pushes an OD past budget, rather than
@@ -189,9 +189,30 @@ same treatment.
 
 The rear necks down to a Ø13.5 mm waist (`oring_neck_d`) for 2.6 mm
 (`oring_neck_len`) between the collar and the thread, with the wire bore locally
-necked to Ø8.0 mm (`oring_neck_bore_d`) so the sealing wall stays a solid
-~2.75 mm. The part works dry; it also accepts an optional O-ring that seals the
-joint to the metal shell for outdoor use.
+necked to Ø9.8 mm (`oring_neck_bore_d`) so the sealing wall is a solid ~1.85 mm -
+matching the rear thread-root wall (an earlier Ø8.0 bore left a 2.75 mm wall that
+printed as an over-thick internal lip). The part works dry; it also accepts an
+optional O-ring that seals the joint to the metal shell for outdoor use.
+
+**Two chamfers tune the seal zone for FDM (printed tip-down, wing up).** Both were
+added after a first O-ring print showed the earlier Ø8.0 choke as an over-thick
+internal lip that sagged at its lower edge; the reworked seal zone below is
+print-validated (ASA, 0.4 mm nozzle) - the underside and thread start come out
+clean and the O-ring seals:
+
+- **Collar/neck junction** (`oring_neck_cham`, 1.2 mm): the bore steps inward
+  here (Ø12 → Ø9.8). A square step is a downward-facing internal overhang that
+  sags, and a sharp stress riser at the neck root; a conical chamfer prints
+  self-supporting and fillets the junction, strengthening the collar-to-neck
+  connection.
+- **Neck→thread lead-in** (`oring_thread_lead`, 1.2 mm): above the neck the
+  thread core (Ø15.72) is wider than the neck (Ø13.5), so the thread would start
+  as a floating ledge cantilevered over the narrower neck. An external cone ramps
+  the OD (and the bore, back out to Ø12) up to the thread so the print widens
+  gradually; it doubles as a thread entry taper. It is taken OUT of the thread
+  length - the top turn sat in the shell's smooth lip and did not engage - so the
+  engaging thread drops from ~5 to ~4 turns while the full 2.6 mm sealing land,
+  the wing-tip depth and the 25.7 mm overall length are all unchanged.
 
 **How it seals:** the NC3MXX shell has a smooth, unthreaded lip pocket just
 inside its rear opening, above the internal threads (measured bore ~17 mm, depth
@@ -215,7 +236,8 @@ caliper measurement, not the reference mesh (which is exterior-only in the rear
 zone).
 
 For a different shell or O-ring, tune `oring_neck_d` / `oring_neck_len` /
-`oring_neck_bore_d` and re-print `fit_test_conn_thread` to check the fit.
+`oring_neck_bore_d` (and, if needed, the chamfer runs `oring_neck_cham` /
+`oring_thread_lead`) and re-print `fit_test_conn_thread` to check the fit.
 
 ## Open items
 

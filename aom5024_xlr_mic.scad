@@ -153,8 +153,25 @@ oring_neck_d = 13.5;
 // the collar the thread starts. Measured ~2.5-2.6mm on a real shell
 oring_neck_len = 2.6;
 // Local wire bore through the neck zone, necked down from wire_bore_d so the
-// thin sealing wall stays solid (neck 13.5 over the 12mm bore would be 0.75mm)
-oring_neck_bore_d = 8.0;
+// sealing wall stays solid. Sized so the wall (oring_neck_d-bore)/2 ~ 1.85mm
+// MATCHES the rear thread-root wall - an earlier 8.0 gave a 2.75mm wall that
+// printed as an over-thick internal lip (a full 12->8 bore choke would be 0.75mm)
+oring_neck_bore_d = 9.8;
+// Internal chamfer run at the collar/neck junction. The bore steps inward here
+// (wire_bore_d -> oring_neck_bore_d), and because the part prints tip-down that
+// square step is a downward-facing internal overhang (it sags) and a sharp
+// stress riser at the neck root. A conical chamfer prints self-supporting and
+// fillets the junction, for a stronger, more reliable collar-to-neck connection
+oring_neck_cham = 1.2;
+// Neck-to-thread lead-in run. Above the neck the thread core (conn_thread_minor_d)
+// is wider than the neck, so printed tip-down the thread starts as a floating
+// ledge cantilevered over the narrower neck. This conical lead-in ramps the OD
+// (and the bore) up to the thread over this axial run so the print widens
+// gradually into the thread; it doubles as a thread entry taper. It is taken OUT
+// of the thread length (the top turn sat in the shell's smooth lip and did not
+// engage), so the wing-tip depth and overall length are unchanged. For a <=45deg
+// cone keep this >= (conn_thread_minor_d - oring_neck_d)/2
+oring_thread_lead = 1.2;
 
 
 /* [Hidden] */
@@ -176,11 +193,13 @@ lip_id    = capsule_od - lip_overlap;        // the lip's opening (wire passage)
 
 z_body        = z_lip_end;
 z_collar      = z_body + body_len;
-z_neck        = z_collar + collar_len;             // seal neck starts after the collar
-z_conn_thread = z_neck + oring_neck_len;           // thread starts below the neck
-z_wing        = z_conn_thread + conn_thread_len;
+z_neck        = z_collar + collar_len;             // seal neck (sealing land) starts after the collar
+z_thread_lead = z_neck + oring_neck_len;           // neck->thread lead-in starts (full 13.5 sealing land ends here)
+z_conn_thread = z_thread_lead + oring_thread_lead; // thread starts after the lead-in cone
+conn_thread_len_net = conn_thread_len - oring_thread_lead; // lead-in comes OUT of the thread, so wing depth is unchanged
+z_wing        = z_conn_thread + conn_thread_len_net;
 wing_len_net  = wing_len - oring_neck_len;         // wing shortened so its tip depth (which seats the insert) is unchanged
-housing_len   = z_wing + wing_len_net;             // net length: neck up top, equal length taken off the wing
+housing_len   = z_wing + wing_len_net;             // net length: neck + lead-in up top, equal length taken off the wing/thread
 
 // ---- size-budget / sanity guardrails (fail loudly instead of silently
 //      rendering a broken or oversized part) ----
@@ -194,6 +213,10 @@ assert(lip_id > 4, "lip opening too small to pass the mic wires - lower lip_over
 assert(pocket_id <= body_od - 2, "front tip wall too thin - shrink capsule_od/capsule_radial_clear or raise body_od");
 assert(oring_neck_d > oring_neck_bore_d + 1.5, "seal-neck wall too thin - lower oring_neck_bore_d or raise oring_neck_d");
 assert(oring_neck_d + eps < conn_thread_minor_d, "seal neck must be a waist narrower than the thread root");
+assert(oring_neck_cham < collar_len, "collar/neck chamfer longer than the collar - lower oring_neck_cham");
+assert(oring_neck_cham + eps < oring_neck_bore_d/2, "collar/neck chamfer would over-run the necked bore");
+assert(oring_thread_lead > 0 && oring_thread_lead < conn_thread_len - 3, "thread lead-in leaves too little engaging thread - lower oring_thread_lead");
+assert(conn_thread_len_net > 3, "engaging thread too short after the lead-in subtraction");
 assert(wing_len_net > 3, "wing too short after the neck subtraction - lower oring_neck_len or raise wing_len");
 
 
@@ -279,12 +302,24 @@ module housing_cavity() {
     // mic wires pass through here with plenty of room
     translate([0,0, z_seat - eps])
         cylinder(h = lip_len + 2*eps, d = lip_id);
-    // wire bore from behind the lip to the rear tip. The seal-neck zone is
-    // necked down (smaller hole = thicker, solid sealing wall)
+    // wire bore from behind the lip up to where the collar/neck chamfer starts.
+    // The seal-neck zone is necked down (smaller hole = solid sealing wall)
     translate([0,0, z_lip_end])
-        cylinder(h = z_neck - z_lip_end + eps, d = wire_bore_d);
+        cylinder(h = (z_neck - oring_neck_cham) - z_lip_end + eps, d = wire_bore_d);
+    // collar/neck junction: the bore steps inward (wire_bore_d -> neck bore). A
+    // conical chamfer instead of a square step keeps that inner corner off the
+    // print's overhang limit and fillets/reinforces the neck root
+    translate([0,0, z_neck - oring_neck_cham - eps])
+        cylinder(h = oring_neck_cham + eps, d1 = wire_bore_d, d2 = oring_neck_bore_d);
+    // necked seal-zone bore (wall ~= the thread-root wall)
     translate([0,0, z_neck - eps])
         cylinder(h = oring_neck_len + 2*eps, d = oring_neck_bore_d);
+    // lead-in zone: bore ramps back out (neck bore -> wire_bore_d) beneath the
+    // external thread lead-in, keeping the wall ~constant. It widens going up, so
+    // the inner wall is self-supporting
+    translate([0,0, z_thread_lead - eps])
+        cylinder(h = oring_thread_lead + 2*eps, d1 = oring_neck_bore_d, d2 = wire_bore_d);
+    // wire bore the rest of the way to the rear
     translate([0,0, z_conn_thread - eps])
         cylinder(h = housing_len - z_conn_thread + 2*eps, d = wire_bore_d);
 }
@@ -305,15 +340,21 @@ module housing() {
             // already safely overlapped)
             translate([0,0, tip_chamfer_len])
                 cylinder(h = z_collar + collar_len - tip_chamfer_len, d = body_od);
-            // seal neck: a waist between the collar and the thread. An optional
-            // O-ring seated in the shell's lip pocket seals against it
+            // seal neck: a waist between the collar and the thread (the O-ring's
+            // sealing land). An O-ring seated in the shell's lip pocket seals
+            // against this Ø oring_neck_d cylinder
             translate([0,0, z_neck - eps])
                 cylinder(h = oring_neck_len + eps, d = oring_neck_d);
-            // connector-mating male thread
+            // neck->thread lead-in cone: ramps the OD up from the neck to the
+            // thread root so the thread does not start as a floating ledge over
+            // the narrower neck (FDM-friendly), and eases thread entry
+            translate([0,0, z_thread_lead - eps])
+                cylinder(h = oring_thread_lead + eps, d1 = oring_neck_d, d2 = conn_thread_minor_d);
+            // connector-mating male thread (shortened by the lead-in length)
             // (tiny axial overlaps below - two solids that only touch at a
             // zero-thickness face can render as separate volumes in CGAL)
             translate([0,0, z_conn_thread - eps])
-                thread_solid(conn_thread_len + eps, conn_thread_pitch,
+                thread_solid(conn_thread_len_net + eps, conn_thread_pitch,
                              conn_thread_major_d, conn_thread_tooth_h, conn_thread_tooth_ang);
             // wing ring (shortened by the neck length so wing-tip depth is unchanged)
             translate([0,0, z_wing - eps])
@@ -333,26 +374,40 @@ module fit_test_conn_thread() {
     // shell AND that the wing ring reaches/pushes the pin insert - and, if you
     // are using the O-ring, drop it into the shell's lip pocket and check the
     // seal squeeze here - before committing to a full print.
-    stub  = 6;                       // collar stub (grip + rim stop)
-    z_t   = oring_neck_len;          // thread start (local z), below the neck
-    z_w   = z_t + conn_thread_len;   // wing start
-    total = z_w + wing_len_net;      // overall reach from z=0 through the wing
+    stub   = 6;                          // collar stub (grip + rim stop)
+    z_lead = oring_neck_len;             // neck->thread lead-in start (local z)
+    z_t    = z_lead + oring_thread_lead; // thread start
+    z_w    = z_t + conn_thread_len_net;  // wing start
+    total  = z_w + wing_len_net;         // overall reach from z=0 through the wing
     difference() {
         union() {
             // collar stub below z=0 (lands on the shell rim)
             translate([0,0, -stub]) cylinder(h = stub + eps, d = collar_od);
-            // seal neck
+            // seal neck (sealing land)
             translate([0,0, -eps]) cylinder(h = oring_neck_len + eps, d = oring_neck_d);
-            // thread
+            // neck->thread lead-in cone
+            translate([0,0, z_lead - eps])
+                cylinder(h = oring_thread_lead + eps, d1 = oring_neck_d, d2 = conn_thread_minor_d);
+            // thread (shortened by the lead-in length)
             translate([0,0, z_t - eps])
-                thread_solid(conn_thread_len + eps, conn_thread_pitch,
+                thread_solid(conn_thread_len_net + eps, conn_thread_pitch,
                              conn_thread_major_d, conn_thread_tooth_h, conn_thread_tooth_ang);
             // wing ring
             translate([0,0, z_w - eps]) wing_ring(wing_len_net + eps);
         }
-        // bore, necked down through the seal zone
-        translate([0,0, -stub - eps]) cylinder(h = stub + eps, d = wire_bore_d);
-        translate([0,0, -eps]) cylinder(h = oring_neck_len + 2*eps, d = oring_neck_bore_d);
+        // bore: collar stub up to the collar/neck chamfer
+        translate([0,0, -stub - eps])
+            cylinder(h = stub - oring_neck_cham + eps, d = wire_bore_d);
+        // collar/neck internal chamfer (matches housing)
+        translate([0,0, -oring_neck_cham - eps])
+            cylinder(h = oring_neck_cham + eps, d1 = wire_bore_d, d2 = oring_neck_bore_d);
+        // necked seal-zone bore
+        translate([0,0, -eps])
+            cylinder(h = oring_neck_len + 2*eps, d = oring_neck_bore_d);
+        // lead-in bore, ramping back out to the wire bore
+        translate([0,0, z_lead - eps])
+            cylinder(h = oring_thread_lead + 2*eps, d1 = oring_neck_bore_d, d2 = wire_bore_d);
+        // wire bore the rest of the way
         translate([0,0, z_t - eps]) cylinder(h = total - z_t + 2*eps, d = wire_bore_d);
     }
 }

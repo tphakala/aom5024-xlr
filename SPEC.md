@@ -146,6 +146,7 @@ measure the capsule and set `capsule_od` to match.
 | Capsule pocket | Ø9.9 mm × 5.2 mm deep (= `capsule_h` + `capsule_depth_clear`, one consistent bore, open to the front face) |
 | Depth stop | solid lip ring, 1.5 mm thick (`lip_len`), opening Ø9.2 mm (`capsule_od - lip_overlap`), starting at `capsule_h + capsule_depth_clear` |
 | Front outer edge (cosmetic) | 1.0mm-run 45° chamfer + 0.3mm fillet on the OD |
+| Seal neck (O-ring seal zone) | Ø13.5 mm x 2.6 mm long between collar and thread, wire bore necked to Ø8.0 mm there (`oring_neck_d` / `oring_neck_len` / `oring_neck_bore_d`) - see below |
 
 `max_od` is enforced by `assert()`s in the derived-values section - rendering
 fails loudly if any parameter change pushes an OD past budget, rather than
@@ -184,6 +185,37 @@ same treatment.
   shrinking overhang. The internal lip prints as a narrow (0.35mm/side)
   overhang step over the pocket; it needs no support.
 
+## O-ring seal zone (optional weather sealing)
+
+The rear necks down to a Ø13.5 mm waist (`oring_neck_d`) for 2.6 mm
+(`oring_neck_len`) between the collar and the thread, with the wire bore locally
+necked to Ø8.0 mm (`oring_neck_bore_d`) so the sealing wall stays a solid
+~2.75 mm. The part works dry; it also accepts an optional O-ring that seals the
+joint to the metal shell for outdoor use.
+
+**How it seals:** the NC3MXX shell has a smooth, unthreaded lip pocket just
+inside its rear opening, above the internal threads (measured bore ~17 mm, depth
+~2.5-2.6 mm - it matches the O-ring's width). An O-ring dropped into that pocket
+is squeezed between the shell bore and the boot's seal neck as the boot threads
+in. The ring lives in the shell, not on the boot, so no groove is needed.
+
+**Provenance (measured / print-tuned against one real shell + one O-ring,
+2026-07-03):** O-ring measured ID ~13 mm / OD ~19 mm (cord ~3 mm; box labeled
+2.5 mm). The neck diameter was found by printing a row of stepped seal-test
+plugs (Ø11.5-13.5 mm) and pushing each into the shell with the ring: Ø13.5
+sealed snug/perfect - loose on the bare neck in air, tight once the shell bore
+confines it (textbook radial seal). The thread + wing shift down by
+`oring_neck_len` and the wing is shortened by the same amount
+(`wing_len_net = wing_len - oring_neck_len`), so the overall length (25.7 mm)
+and the wing-tip depth that seats the pin insert are unchanged - no over-travel.
+`fit_test_conn_thread` carries the seal neck, so it doubles as the seal test;
+verified sealing on the real shell. The shell's internal lip bore came from
+caliper measurement, not the reference mesh (which is exterior-only in the rear
+zone).
+
+For a different shell or O-ring, tune `oring_neck_d` / `oring_neck_len` /
+`oring_neck_bore_d` and re-print `fit_test_conn_thread` to check the fit.
+
 ## Open items
 
 - [ ] Decide if the 2.5mm `body_len` neck is too short in hand - one-line
@@ -193,3 +225,6 @@ same treatment.
 - [ ] Dimensions are only confirmed against one shell and one capsule so
       far; if a print doesn't fit for you, start from the fit-test coupons
       and the tuning advice above.
+- [ ] O-ring seal zone confirmed against one shell + one O-ring only; the
+      neck/lip numbers may need tuning for other shells or ring sizes (see the
+      O-ring seal zone section for how).

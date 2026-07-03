@@ -68,6 +68,17 @@ def floor_material():
     return mat
 
 
+def rubber_material():
+    mat = bpy.data.materials.get("rubber")
+    if mat is None:
+        mat = bpy.data.materials.new("rubber")
+        mat.use_nodes = True
+        bsdf = mat.node_tree.nodes["Principled BSDF"]
+        bsdf.inputs["Base Color"].default_value = (0.015, 0.015, 0.015, 1.0)
+        bsdf.inputs["Roughness"].default_value = 0.55
+    return mat
+
+
 def bore_rear(obj, radius, depth):
     """Cut a cylindrical recess into the +z end of an object (used to carve
     the bushing-thread opening back into the Neutrik shell, whose STEP export
@@ -180,6 +191,36 @@ def build_and_render_ex(filename, parts, azim=30.0, elev=16.0):
     render(os.path.join(IMG_DIR, filename))
 
 
+def add_oring(x, z, major=8.25, minor=1.5):
+    """A rubber O-ring (torus) resting around the housing axis at height z.
+    major/minor give ID 13.5 / cord 3.0 (OD 19.5), sitting on the Ø13.5 seal
+    neck. z is the neck's mid-height in the housing's own frame (the housing is
+    imported tip-down with no rotation, so model z == world z)."""
+    bpy.ops.mesh.primitive_torus_add(location=(x, 0, z),
+                                     major_radius=major, minor_radius=minor,
+                                     major_segments=96, minor_segments=28)
+    ring = bpy.context.active_object
+    ring.data.materials.append(rubber_material())
+    bpy.ops.object.shade_smooth()
+    return ring
+
+
+def build_oring_render():
+    """Two housings, thread/seal-neck end up: left bare, right with an O-ring
+    seated in the seal neck - shows the optional weather seal in place."""
+    reset_scene()
+    # seal-neck mid-height in the model: z_neck..z_conn_thread ~ 11.0..13.6
+    neck_z = 12.3
+    left = import_stl("housing.stl", euler=(0, 0, 0), x=-15)   # without O-ring
+    right = import_stl("housing.stl", euler=(0, 0, 0), x=15)   # with O-ring
+    add_oring(x=15, z=neck_z)
+    add_floor()
+    add_sun((0.5, -1.0, 0.9), energy=2.5, angle_deg=15)
+    add_sun((-1.0, -0.3, 0.5), energy=0.8, angle_deg=30)
+    frame_camera([left, right], azim_deg=24, elev_deg=15)
+    render(os.path.join(IMG_DIR, "oring_seal.png"))
+
+
 # housing twice: thread/wing-ring end up (as modeled) and capsule end up
 build_and_render("housing.png", [
     ("housing.stl", (0, 0, 0), -16),
@@ -191,6 +232,10 @@ build_and_render("fit_tests.png", [
     ("fit_test_conn_thread.stl", (0, 0, 0), -18),
     ("fit_test_capsule.stl", (0, 0, 0), 18),
 ])
+
+# the optional O-ring weather seal: bare housing vs one with the O-ring seated
+# in the seal neck
+build_oring_render()
 
 # housing next to a real Neutrik NC3MXX connector (shell only, stock boot
 # removed - the printed housing replaces the boot), coaxial, thread facing

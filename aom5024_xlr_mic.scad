@@ -13,7 +13,8 @@
 //
 //  The connector's metal shell, pin insert and latch are used as-is; this
 //  part only replaces the cable bushing/boot, extending forward to carry the
-//  capsule.
+//  capsule. A necked "seal zone" just behind the collar optionally accepts an
+//  O-ring for weather sealing (see [O-ring seal zone]); it works dry too.
 //
 //  ASSEMBLY
 //    1. Feed the mic wires in through the rear opening and out the front.
@@ -22,8 +23,11 @@
 //       pocket, until its rear face lands on the internal lip (the depth
 //       stop). Friction holds it; add a dab of hot glue for a permanent
 //       bond.
-//    4. Screw the housing's rear thread into the connector shell. The wing
-//       ring reaches past the thread and pushes the pin insert into its seat.
+//    4. OPTIONAL weather seal: drop a ~13 x 3 (ID x cord) O-ring into the
+//       shell's smooth internal lip pocket, just above its threads.
+//    5. Screw the housing's rear thread into the connector shell. The wing
+//       ring reaches past the thread and pushes the pin insert into its seat;
+//       the seal neck passes through the O-ring and the shell squeezes it home.
 //
 //  ADAPTING TO YOUR CAPSULE
 //    Set capsule_od and capsule_h under [Capsule] below - the pocket bore,
@@ -133,6 +137,26 @@ collar_len = 1.8;
 body_len = 2.5;
 
 
+/* [O-ring seal zone] */
+// The boot necks down to a waist between the collar and the thread. It works
+// as-is (dry), and it also lets you add an OPTIONAL O-ring for weather sealing:
+// seat a ~2.5-3mm cord O-ring (measured ID~13 / OD~19, e.g. a 13x3 nitrile
+// ring) in the NC3MXX shell's smooth internal lip pocket just above its
+// threads, then thread the boot in - the neck passes through the ring and the
+// shell bore squeezes it against the neck to seal. No groove is needed: the
+// ring lives in the shell, not on the boot. Print-tested sealing on a real shell.
+
+// Neck outer diameter - the O-ring rides on this (loose in air, snug once the
+// shell bore ~17mm confines it around the neck). Print-tuned winner
+oring_neck_d = 13.5;
+// Neck axial length = the shell's smooth lip-pocket depth, i.e. how far below
+// the collar the thread starts. Measured ~2.5-2.6mm on a real shell
+oring_neck_len = 2.6;
+// Local wire bore through the neck zone, necked down from wire_bore_d so the
+// thin sealing wall stays solid (neck 13.5 over the 12mm bore would be 0.75mm)
+oring_neck_bore_d = 8.0;
+
+
 /* [Hidden] */
 $fn = 96;
 eps = 0.01;
@@ -152,9 +176,11 @@ lip_id    = capsule_od - lip_overlap;        // the lip's opening (wire passage)
 
 z_body        = z_lip_end;
 z_collar      = z_body + body_len;
-z_conn_thread = z_collar + collar_len;
+z_neck        = z_collar + collar_len;             // seal neck starts after the collar
+z_conn_thread = z_neck + oring_neck_len;           // thread starts below the neck
 z_wing        = z_conn_thread + conn_thread_len;
-housing_len   = z_wing + wing_len;
+wing_len_net  = wing_len - oring_neck_len;         // wing shortened so its tip depth (which seats the insert) is unchanged
+housing_len   = z_wing + wing_len_net;             // net length: neck up top, equal length taken off the wing
 
 // ---- size-budget / sanity guardrails (fail loudly instead of silently
 //      rendering a broken or oversized part) ----
@@ -166,6 +192,9 @@ assert(conn_thread_minor_d > wire_bore_d + 2, "rear thread root wall too thin");
 assert(lip_overlap > 2*capsule_radial_clear + 0.1, "lip_overlap too small to reliably stop the capsule");
 assert(lip_id > 4, "lip opening too small to pass the mic wires - lower lip_overlap");
 assert(pocket_id <= body_od - 2, "front tip wall too thin - shrink capsule_od/capsule_radial_clear or raise body_od");
+assert(oring_neck_d > oring_neck_bore_d + 1.5, "seal-neck wall too thin - lower oring_neck_bore_d or raise oring_neck_d");
+assert(oring_neck_d + eps < conn_thread_minor_d, "seal neck must be a waist narrower than the thread root");
+assert(wing_len_net > 3, "wing too short after the neck subtraction - lower oring_neck_len or raise wing_len");
 
 
 // =============================================================================
@@ -250,9 +279,14 @@ module housing_cavity() {
     // mic wires pass through here with plenty of room
     translate([0,0, z_seat - eps])
         cylinder(h = lip_len + 2*eps, d = lip_id);
-    // constant wire bore, from behind the lip to the rear tip
+    // wire bore from behind the lip to the rear tip. The seal-neck zone is
+    // necked down (smaller hole = thicker, solid sealing wall)
     translate([0,0, z_lip_end])
-        cylinder(h = housing_len - z_lip_end + eps, d = wire_bore_d);
+        cylinder(h = z_neck - z_lip_end + eps, d = wire_bore_d);
+    translate([0,0, z_neck - eps])
+        cylinder(h = oring_neck_len + 2*eps, d = oring_neck_bore_d);
+    translate([0,0, z_conn_thread - eps])
+        cylinder(h = housing_len - z_conn_thread + 2*eps, d = wire_bore_d);
 }
 
 
@@ -271,15 +305,19 @@ module housing() {
             // already safely overlapped)
             translate([0,0, tip_chamfer_len])
                 cylinder(h = z_collar + collar_len - tip_chamfer_len, d = body_od);
+            // seal neck: a waist between the collar and the thread. An optional
+            // O-ring seated in the shell's lip pocket seals against it
+            translate([0,0, z_neck - eps])
+                cylinder(h = oring_neck_len + eps, d = oring_neck_d);
             // connector-mating male thread
             // (tiny axial overlaps below - two solids that only touch at a
             // zero-thickness face can render as separate volumes in CGAL)
             translate([0,0, z_conn_thread - eps])
                 thread_solid(conn_thread_len + eps, conn_thread_pitch,
                              conn_thread_major_d, conn_thread_tooth_h, conn_thread_tooth_ang);
-            // wing ring
+            // wing ring (shortened by the neck length so wing-tip depth is unchanged)
             translate([0,0, z_wing - eps])
-                wing_ring(wing_len + eps);
+                wing_ring(wing_len_net + eps);
         }
         housing_cavity();
     }
@@ -290,19 +328,32 @@ module housing() {
 //  FIT-TEST COUPONS
 // =============================================================================
 module fit_test_conn_thread() {
-    // rear thread + wing ring stub, with a short collar to grip while turning.
-    // Print this and confirm it screws smoothly into YOUR NC3MXX shell AND
-    // that the wing ring reaches/pushes the pin insert, before a full print.
+    // rear thread + seal neck + wing ring stub, with a short collar to grip
+    // while turning. Print this and confirm it screws smoothly into YOUR NC3MXX
+    // shell AND that the wing ring reaches/pushes the pin insert - and, if you
+    // are using the O-ring, drop it into the shell's lip pocket and check the
+    // seal squeeze here - before committing to a full print.
+    stub  = 6;                       // collar stub (grip + rim stop)
+    z_t   = oring_neck_len;          // thread start (local z), below the neck
+    z_w   = z_t + conn_thread_len;   // wing start
+    total = z_w + wing_len_net;      // overall reach from z=0 through the wing
     difference() {
         union() {
-            thread_solid(conn_thread_len, conn_thread_pitch,
-                         conn_thread_major_d, conn_thread_tooth_h, conn_thread_tooth_ang);
-            translate([0,0, conn_thread_len - eps])
-                wing_ring(wing_len + eps);
-            translate([0,0, -6])
-                cylinder(h = 6 + eps, d = collar_od);
+            // collar stub below z=0 (lands on the shell rim)
+            translate([0,0, -stub]) cylinder(h = stub + eps, d = collar_od);
+            // seal neck
+            translate([0,0, -eps]) cylinder(h = oring_neck_len + eps, d = oring_neck_d);
+            // thread
+            translate([0,0, z_t - eps])
+                thread_solid(conn_thread_len + eps, conn_thread_pitch,
+                             conn_thread_major_d, conn_thread_tooth_h, conn_thread_tooth_ang);
+            // wing ring
+            translate([0,0, z_w - eps]) wing_ring(wing_len_net + eps);
         }
-        translate([0,0,-6-eps]) cylinder(h = conn_thread_len + wing_len + 6 + 2*eps, d = wire_bore_d);
+        // bore, necked down through the seal zone
+        translate([0,0, -stub - eps]) cylinder(h = stub + eps, d = wire_bore_d);
+        translate([0,0, -eps]) cylinder(h = oring_neck_len + 2*eps, d = oring_neck_bore_d);
+        translate([0,0, z_t - eps]) cylinder(h = total - z_t + 2*eps, d = wire_bore_d);
     }
 }
 

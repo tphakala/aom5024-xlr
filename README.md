@@ -55,6 +55,32 @@ upgrade the electronics to a buffered, impedance-balanced circuit (for
 example a Schoeps- or Alice-style two-transistor front end) - though that
 needs more board space than this connector housing offers.
 
+## Weather sealing (optional)
+
+The rear of the housing necks down to a narrow "seal zone" just behind the
+collar. It works fine dry, but it also lets you weatherproof the joint between
+the printed part and the metal shell with a single O-ring - handy for outdoor
+mics.
+
+![The seal zone bare (left) and with an O-ring seated in it (right)](images/oring_seal.png)
+
+The NC3MXX shell has a smooth, unthreaded lip pocket just inside its rear
+opening, above the internal threads. Drop a **~13 x 3 mm** (inner diameter x
+cord) O-ring into that pocket, then thread the housing in as usual: the seal
+neck passes through the ring and the shell bore squeezes it against the neck,
+sealing the joint. No groove or glue is needed - the ring is captured between
+the shell and the housing.
+
+This was tuned and print-tested against a real NC3MXX shell (neck Ø13.5 mm,
+seal-zone length 2.6 mm). If your shell or O-ring differ, the seal zone is
+parametric: adjust `oring_neck_d`, `oring_neck_len` and `oring_neck_bore_d`
+under **[O-ring seal zone]**, then re-print `fit_test_conn_thread` (it carries
+the seal neck) and check the fit in your shell before a full print.
+
+The front acoustic port cannot be sealed - it has to stay open for the mic - so
+this weatherproofs the rear joint and the electronics cavity, not the capsule
+face.
+
 ## Bill of materials
 
 - **Neutrik NC3MXX** male XLR connector - must have the bushing thread
@@ -63,6 +89,8 @@ needs more board space than this connector housing offers.
   [Adapting to your capsule](#adapting-to-your-capsule))
 - Resistor + capacitor for the P48 circuit
 - Thin wire; optionally a dab of hot glue for permanent capsule retention
+- Optional: a **~13 x 3 mm** (ID x cord) O-ring to weather-seal the
+  housing/shell joint (see [Weather sealing](#weather-sealing-optional))
 
 ## Print the fit tests first
 
@@ -142,8 +170,12 @@ Pre-rendered STLs with the default parameters are included in `stl/`.
 4. Pull the wire slack back while pushing the capsule into the front pocket,
    until its rear face seats flat on the internal lip. Friction holds
    it; a small dab of hot glue makes it permanent.
-5. Screw the housing into the connector shell. The wing ring pushes the pin
-   insert into its seat as the thread tightens.
+5. Optional weather seal: drop a ~13 x 3 mm (ID x cord) O-ring into the
+   connector shell's smooth internal lip pocket, just inside the rear opening
+   above the threads (see [Weather sealing](#weather-sealing-optional)).
+6. Screw the housing into the connector shell. The wing ring pushes the pin
+   insert into its seat as the thread tightens; if fitted, the seal neck passes
+   through the O-ring and the shell squeezes it home.
 
 ## Design notes
 

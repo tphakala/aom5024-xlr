@@ -142,13 +142,57 @@ Other things you may want to tweak:
 
 | parameter | default | meaning |
 |---|---|---|
-| `body_len` | 2.5 | neck length between capsule section and connector - raise for a longer mic body; nothing else depends on it |
+| `body_len` | 2.5 | length of the plain body tube between the capsule section and the collar - the simplest way to make the mic longer. See "Making the body longer (for a mic clip)" below; nothing else depends on it |
 | `lip_overlap` | 0.6 | how far the retaining lip steps in below `capsule_od`. The lip opening (`capsule_od` minus this, 9.2 mm at defaults) is what the wires pass through - wide and easy |
 | `lip_len` | 1.5 | axial thickness of the lip ring |
 
 Guardrail `assert()`s fail the render loudly if a parameter combination
 produces an oversized or broken part. After any change, print
 `fit_test_capsule.stl` before a full housing.
+
+## Making the body longer (for a mic clip)
+
+The short default body barely protrudes from the connector. To seat the mic
+in a standard mic clip you usually want a longer exposed barrel to clamp on.
+Change **one** parameter, `body_len`.
+
+The printed part has two halves:
+
+```
+capsule tip                       collar face │ (everything past here is INSIDE the shell)
+|--- OUTSIDE the shell: 11.0 mm ---|           │--- INSIDE the shell: 14.7 mm (fixed) ---|
+  capsule+lip 6.7   body_len 2.5   collar 1.8  │   seal neck + thread + wing ring
+```
+
+Only the length **outside** the shell is what a mic clip grips, and only
+`body_len` is free to change - the capsule/lip section (6.7 mm) is set by the
+capsule, and everything from the collar face inward (14.7 mm of seal neck,
+thread and wing) is print-validated against the real shell and must stay put.
+`body_len` adds 1:1 to both the exposed length and the total length; nothing
+else moves.
+
+So for a target **exposed** barrel length `L` (capsule tip to collar face):
+
+```
+body_len = L - 8.5      (that is, L minus the fixed 6.7 mm capsule section and 1.8 mm collar)
+```
+
+Example - double the exposed barrel from 11.0 mm to 22.0 mm, `body_len = 13.5`:
+
+```
+openscad -o stl/housing_long.stl -D 'part="housing"' -D 'body_len=13.5' aom5024_xlr_mic.scad
+```
+
+That makes the whole part 36.7 mm long while the thread and wing that thread
+into the connector are untouched, so it still seats and seals exactly as the
+default does. The barrel is a plain Ø20.4 mm cylinder (same as the shell OD),
+which most standard mic clips grip fine.
+
+> **Do not** reach for the `oring_neck_*` parameters for this. Despite the
+> name, the code's "neck" is the O-ring **seal land inside the shell**, not
+> the exposed body. Changing it drives the thread and wing deeper into the
+> connector and breaks the print-validated seal fit. The exposed body you
+> clamp a clip onto is `body_len`, and only `body_len`.
 
 ## Exporting STLs
 

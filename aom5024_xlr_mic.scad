@@ -133,7 +133,14 @@ conn_shell_od = 20.4;
 max_od = 20.4;
 // Collar length - the flush shoulder that lands on the connector's rear face
 collar_len = 1.8;
-// Body tube length between the capsule shoulder and the collar. Freely adjustable for the overall mic length you want; nothing else depends on it
+// Body tube length between the capsule shoulder and the collar. This is the
+// ONLY free part of the length that sits OUTSIDE the connector shell (the barrel
+// a mic clip grips): exposed length = 6.7 (capsule/lip) + body_len + 1.8 (collar),
+// = 11.0mm at the default. Everything past the collar (seal neck + thread + wing)
+// is inside the shell and print-validated - do not touch it. For a target exposed
+// length L, set body_len = L - 8.5 (e.g. 13.5 doubles the exposed barrel to 22mm).
+// NOTE: this is the exposed body, NOT the oring_neck_* "seal neck" (that is inside
+// the shell). Adds 1:1 to the overall length; nothing else depends on it
 body_len = 2.5;
 
 

@@ -141,7 +141,9 @@ measure the capsule and set `capsule_od` to match.
 |---|---|
 | Max OD anywhere on the print | 20.4 mm (`max_od`; print-compensated over a 20.3mm caliper measurement of the shell) |
 | Overall length, capsule tip → connector rear face | ≈ 25.7 mm (`housing_len`) |
-| Body tube length (`body_len`, freely adjustable) | 2.5 mm (a short connecting neck - raise it for a longer mic) |
+| Exposed length OUTSIDE the shell (capsule tip → collar face) | 11.0 mm = capsule/lip 6.7 + `body_len` 2.5 + collar 1.8. This is the barrel a mic clip grips |
+| Length INSIDE the shell (collar face → wing tip, fixed) | 14.7 mm = seal neck + thread + wing; print-validated, do not change |
+| Body tube length (`body_len`, freely adjustable) | 2.5 mm (the only free part of the exposed length; adds 1:1 to both exposed and overall length, nothing else depends on it) |
 | Wire-passage bore (constant, behind the lip) | 12.0 mm (`wire_bore_d` = `wing_id`) |
 | Capsule pocket | Ø9.9 mm × 5.2 mm deep (= `capsule_h` + `capsule_depth_clear`, one consistent bore, open to the front face) |
 | Depth stop | solid lip ring, 1.5 mm thick (`lip_len`), opening Ø9.2 mm (`capsule_od - lip_overlap`), starting at `capsule_h + capsule_depth_clear` |
@@ -151,6 +153,28 @@ measure the capsule and set `capsule_od` to match.
 `max_od` is enforced by `assert()`s in the derived-values section - rendering
 fails loudly if any parameter change pushes an OD past budget, rather than
 silently printing an oversized part.
+
+### Lengthening the exposed body (mic-clip fit)
+
+The part splits at the collar face into an 11.0 mm section OUTSIDE the shell
+(what a mic clip grips) and a fixed 14.7 mm section INSIDE the shell (seal
+neck + thread + wing, print-validated - leave it alone). `body_len` is the
+only free component of the exposed length and adds 1:1 to both the exposed and
+overall length. For a target exposed length `L` (capsule tip to collar face):
+
+```
+body_len = L - 8.5          (L minus the fixed 6.7 mm capsule section + 1.8 mm collar)
+```
+
+Doubling the exposed barrel (11.0 -> 22.0 mm) is `body_len = 13.5`, giving a
+36.7 mm total part with the thread/wing engagement unchanged. Verified by
+measuring the exported STL bounding box (25.70 -> 36.70 mm, the 11.0 mm delta
+landing entirely on the exposed body).
+
+**Naming trap:** the code's `oring_neck_*` parameters are NOT this exposed
+body. Despite "neck" in the name they are the O-ring **seal land inside the
+shell**; changing them drives the thread and wing deeper and breaks the
+print-validated seal fit. The exposed body is `body_len`, and only `body_len`.
 
 ## Re-exporting after edits
 
